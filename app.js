@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const docusign = require('docusign-esign');
 const fs = require('fs');
 const path = require('path');
+var Handlebars = require("hbs");
 
 const privateKey = process.env.privateKey
 const integratorKey = '43891a74-33c8-403d-b451-8c3e1009213e';
@@ -60,6 +61,20 @@ app.get('/sign-document', async function(req, res) {
         const recipientEmail = 'barhoumi.meriem1@gmail.com';
         const recipientClientId = '2';
 
+        const templateStr = fs.readFileSync(path.resolve(documentPath)).toString('utf8');
+		const template = Handlebars.compile(templateStr, { noEscape: true });
+		const html = template({
+			name: "Mrs./Mr.",
+			code: "ranCode",
+		});
+        // write content into file
+        fs.writeFileSync(
+            path.resolve(documentPath),
+            html,
+            { encoding: 'utf8', flag: 'w' }
+        )
+
+        console.log("HTML =====> ", html);
         // Create an envelope
         const envelopeDefinition = new docusign.EnvelopeDefinition();
         envelopeDefinition.emailSubject = 'Subject Hmar';
