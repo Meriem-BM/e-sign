@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 var Handlebars = require("hbs");
 const axios = require('axios');
+const nodemailer = require('nodemailer');
 
 const privateKey = process.env.privateKey
 const integratorKey = '43891a74-33c8-403d-b451-8c3e1009213e';
@@ -22,8 +23,8 @@ app.get('/sign-document', async function(req, res) {
 
     // Create JWT token
     const jwtToken = jwt.sign({
-        iss: "43891a74-33c8-403d-b451-8c3e1009213e",
-        sub: "73597449-f770-4e2e-bc60-eebbcc679d58",
+        iss: integratorKey,
+        sub: userId,
         aud: "account-d.docusign.com",
         iat: Math.floor(Date.now() / 1000),
         exp: Math.floor(Date.now() / 1000)+6000,
@@ -129,7 +130,6 @@ app.get('/sign-document', async function(req, res) {
 
     // Retrieve the envelope status periodically until it is completed
     let envelopeDocuments = await envelopesApi.listDocuments(accountId, envelopeId, null);
-    console.log(envelopeDocuments);
     const signedDocumentId = envelopeDocuments.envelopeDocuments[0].documentId
     const recipientViewRequest = new docusign.RecipientViewRequest();
     recipientViewRequest.returnUrl = 'https://www.docusign.com/devcenter';
@@ -160,6 +160,39 @@ app.get('/sign-document', async function(req, res) {
         result,
         { encoding: 'binary', flag: 'w' }
     )
+
+    // create reusable transporter object using the default SMTP transport
+    console.log(process.env.GMAIL_PWD);
+    let transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: 'thenorthtechstore@gmail.com', // your Gmail username
+            pass: process.env.GMAIL_PWD // your Gmail password
+        }
+    });
+
+    // setup email data
+    let mailOptions = {
+        from: 'thenorthtechstore@gmail.com', // sender address
+        to: 'barhoumi.meriem1@gmail.com', // list of receivers
+        subject: 'eSign email with PDF attachment', // Subject line
+        text: 'Please see attached PDF file.', // plain text body
+        attachments: [
+            {
+                filename: 'file.pdf', // name of the attachment
+                content: fs.createReadStream('./file.pdf') // read the content of the file
+            }
+        ]
+    };
+
+    // send mail with defined transport object
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.log(error);
+        } else {
+            console.log('Email sent: ' + info.response);
+        }
+    });
 
   } catch (e) {
     console.log(e);
