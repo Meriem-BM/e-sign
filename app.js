@@ -12,7 +12,7 @@ const privateKey = process.env.privateKey
 const integratorKey = '43891a74-33c8-403d-b451-8c3e1009213e';
 const userId = '73597449-f770-4e2e-bc60-eebbcc679d58';
 const accountId = 'd8e2676e-e967-4f8d-bbb5-13b30afb1955';
-const image = 'https://i.ibb.co/rkQ3LGH/logo-social.png'
+const image = 'https://i.ibb.co/rkQ3LGH/logo-social.png';
 
 const express = require('express');
 const app = express();
@@ -162,25 +162,30 @@ app.get('/sign-document', async function(req, res) {
     )
 
     // create reusable transporter object using the default SMTP transport
-    console.log(process.env.GMAIL_PWD);
     let transporter = nodemailer.createTransport({
         service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
         auth: {
-            user: 'thenorthtechstore@gmail.com', // your Gmail username
-            pass: process.env.GMAIL_PWD // your Gmail password
+            user: 'barhoumi.meriem1@gmail.com', // your Gmail username
+            pass: "buecpkpcgrwwftzj" // your Gmail password
         }
     });
 
+    console.log(transporter);
+
     // setup email data
     let mailOptions = {
-        from: 'thenorthtechstore@gmail.com', // sender address
-        to: 'barhoumi.meriem1@gmail.com', // list of receivers
+        from: 'barhoumi.meriem1@gmail.com', // sender address
+        to: 'thenorthtechstore@gmail.com', // list of receivers
         subject: 'eSign email with PDF attachment', // Subject line
         text: 'Please see attached PDF file.', // plain text body
         attachments: [
             {
                 filename: 'file.pdf', // name of the attachment
-                content: fs.createReadStream('./file.pdf') // read the content of the file
+                path: path.join (__dirname, './file.pdf'),
+                contentType: 'application/pdf'
             }
         ]
     };
